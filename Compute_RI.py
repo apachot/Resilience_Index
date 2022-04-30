@@ -153,32 +153,32 @@ def scoreDiversificationHRFromNaf(naf, threshold):
 	#print("score diversification rh=", score)
 	return score
 
-def compute_RI(F_1_4, F_2_2, F_2_4, F_3_1, F_3_3):
-	return F_1_4 * (F_2_2 * F_2_4 + 20) * (F_3_1 * F_3_3) + 42 * F_1_4 + 72 * (F_2_2 * F_2_4 + 20) + 40 * (F_3_1 * F_3_3) + 718 
+def compute_RI(F_1_4, F_2_2, F_2_4, F_3_3):
+	return F_1_4 * (F_2_2 * F_2_4 + 20) * F_3_3 + 42 * F_1_4 + 72 * (F_2_2 * F_2_4 + 20) + 40 * F_3_3 + 718 
 
 #F^1_4 : Source de secours pour les fournisseurs locaux 
 def compute_F_1_4(naf, coord_x, coord_y, threshold):
-	F_1_4 = 5 * scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold)
+	F_1_4 = 10 * scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold)
 	return F_1_4
 
 #F^2_2 : Agilité
-def compute_F_2_2(naf, coord_x, coord_y):
-	F_2_2 = 0
+def compute_F_2_2(naf, threshold):
+	F_2_2 = 10 * scoreDiversificationFromNaf(naf, threshold)
 	return F_2_2
 
 #F^2_4 : Main-d’œuvre polyvalente dans l’organisation
 def compute_F_2_4(naf, threshold):
-	F_2_4 = 5 * scoreDiversificationHRFromNaf(naf, threshold)
+	F_2_4 = 10 * scoreDiversificationHRFromNaf(naf, threshold)
 	return F_2_4
 
 #F^3_1 : Flexibilité de la production 
-def compute_F_3_1(naf, threshold):
-	F_3_1 =  5 * scoreDiversificationFromNaf(naf, threshold)
-	return F_3_1
+#def compute_F_3_1(naf, threshold):
+#	F_3_1 =  0
+#	return F_3_1
 
 #F^3_3 : Flexibilité de l’approvisionnement
 def compute_F_3_3(naf):
-	F_3_3 = 5 * scoreProductsFromLocalSuppliersFromNaf(naf)
+	F_3_3 = 10 * scoreProductsFromLocalSuppliersFromNaf(naf)
 	return F_3_3
 
 
@@ -187,15 +187,13 @@ def compute_siren_RI(naf, coord_x, coord_y):
 
 	#look for naf code
 	F_1_4 = compute_F_1_4(naf, coord_x, coord_y, 100)
-	F_2_2 = compute_F_2_2(naf, coord_x, coord_y)
+	F_2_2 = compute_F_2_2(naf, 0.5)
 	F_2_4 = compute_F_2_4(naf, 0.9)
-	F_3_1 = compute_F_3_1(naf, 0.5)
+	#F_3_1 = compute_F_3_1(naf, )
 	F_3_3 = compute_F_3_3(naf)
-	return compute_RI(F_1_4, F_2_2, F_2_4, F_3_1, F_3_3)
+	return compute_RI(F_1_4, F_2_2, F_2_4, F_3_3)
 
 
-#suppliers = suppliersFromNaF(80.30)
-#print("suppliers=", suppliers)
 
 
 #coords_naf = (45.244352,4.271605)
