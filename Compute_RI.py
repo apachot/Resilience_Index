@@ -15,7 +15,7 @@ def suppliersFromNaF(naf):
 	suppliers = IO_table_naf_nonzero
 	return suppliers
 
-def scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold):
+def scoreLocalSuppliersFromNaf_old(naf, coord_x, coord_y, threshold):
 	
 	coords_naf = (coord_x,coord_y)
 
@@ -49,6 +49,10 @@ def scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold):
 	
 
 	return min(score,1)
+
+def scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold):
+	return 1
+
 
 def scoreProductsFromLocalSuppliersFromNaf(naf):
 	
@@ -91,6 +95,8 @@ def scoreProductsFromLocalSuppliersFromNaf(naf):
 
 	#print("total_ score pour cet établissement =", score)
 	return min(score,1)
+
+
 
 def scoreDiversificationFromNaf(naf, threshold):
 
