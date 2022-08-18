@@ -15,7 +15,7 @@ def suppliersFromNaF(naf):
 	suppliers = IO_table_naf_nonzero
 	return suppliers
 
-def scoreLocalSuppliersFromNaf_old(naf, coord_x, coord_y, threshold):
+def scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold):
 	
 	coords_naf = (coord_x,coord_y)
 
@@ -50,11 +50,7 @@ def scoreLocalSuppliersFromNaf_old(naf, coord_x, coord_y, threshold):
 
 	return min(score,1)
 
-def scoreLocalSuppliersFromNaf(naf, coord_x, coord_y, threshold):
-	return 1
-
-
-def scoreProductsFromLocalSuppliersFromNaf(naf):
+def scoreProductsFromSuppliersFromNaf(naf):
 	
 	
 	#extract NAF code for suppliers according to IO tables 
@@ -180,14 +176,9 @@ def compute_F_2_4(naf, threshold):
 	F_2_4 = 10 * scoreDiversificationHRFromNaf(naf, threshold)
 	return F_2_4
 
-#F^3_1 : Flexibilité de la production 
-#def compute_F_3_1(naf, threshold):
-#	F_3_1 =  0
-#	return F_3_1
-
 #F^3_3 : Flexibilité de l’approvisionnement
 def compute_F_3_3(naf):
-	F_3_3 = 10 * scoreProductsFromLocalSuppliersFromNaf(naf)
+	F_3_3 = 10 * scoreProductsFromSuppliersFromNaf(naf)
 	return F_3_3
 
 
@@ -198,17 +189,9 @@ def compute_naf_RI(naf, coord_x, coord_y):
 	F_1_4 = compute_F_1_4(naf, coord_x, coord_y, 200)
 	F_2_2 = compute_F_2_2(naf, 0.8)
 	F_2_4 = compute_F_2_4(naf, 0.9)
-	#F_3_1 = compute_F_3_1(naf, )
 	F_3_3 = compute_F_3_3(naf)
 	return compute_RI(F_1_4, F_2_2, F_2_4, F_3_3), F_1_4, F_2_2, F_2_4, F_3_3
 
-
-
-
-#coords_naf = (45.244352,4.271605)
-naf = 13.96
-coord_x = 45.244352
-coord_y = 4.271605
 
 all_officies_file="./input/offices-france.csv"
 all_officies_table = pd.read_csv(all_officies_file, sep="," ,header=1, index_col=None).to_numpy()
@@ -216,24 +199,35 @@ all_officies_table = pd.read_csv(all_officies_file, sep="," ,header=1, index_col
 NAF_HS4_file = "./input/NAF_HS4.csv"
 products_table = pd.read_csv(NAF_HS4_file, sep="," ,header=1, index_col=None).to_numpy()
 
+turnover_file = "./input/turnover_french_companies_2016_2021.csv"
+turnover_table = pd.read_csv(turnover_file, sep="," ,header=1, index_col=None).to_numpy()
+
+
+turnover_table_siren = [a[0] for a in turnover_table]
+#print(turnover_table_siren)
+
 output_filename = "./output/computed_RI_for_officies.csv"
 with codecs.open(output_filename, "w", "utf8") as o:
 	o.write(f"siret,naf,ri,F_1_4,F_2_2,F_2_4,F_3_3\n")
 	for i in range(0, len(all_officies_table)):
 		siret = all_officies_table[i][0]
-		naf = float(all_officies_table[i][1][0:5])
-		coord_x = float(str(all_officies_table[i][3].split(',')[0][1:]))
-		coord_y = float(str(all_officies_table[i][3].split(',')[1][0:-1]))
-		
-		#we verify that thos etabilishment is industrial
-		products_table_naf = [[a[1],a[2]] for a in products_table if int(a[0][0:4]) == int(str(naf).split('.')[0]+str(naf).split('.')[1])]
+		siren = int(str(siret)[0:9])
+		#print("siret",siret,"siren",siren)
+		if siren in turnover_table_siren:
+			#print("trouvé dans la liste des entreprises")
+			naf = float(all_officies_table[i][1][0:5])
+			coord_x = float(str(all_officies_table[i][3].split(',')[0][1:]))
+			coord_y = float(str(all_officies_table[i][3].split(',')[1][0:-1]))
+			
+			#we verify that thos etabilishment is industrial
+			products_table_naf = [[a[1],a[2]] for a in products_table if int(a[0][0:4]) == int(str(naf).split('.')[0]+str(naf).split('.')[1])]
 	
-		if(len(products_table_naf)):
-			#print("(", i ,"/", len(all_officies_table),": Etablissement", all_officies_table[i][4], " (", naf, ")")
-			#print("coord_x=", coord_x, "coord_y=", coord_y, "origin=", all_officies_table[i][3])
-			RI, F_1_4, F_2_2, F_2_4, F_3_3 = compute_naf_RI(naf, coord_x, coord_y)
-			print("[" , i , "/" , len(all_officies_table) , "]" , round(RI,2),round(F_1_4,2),round(F_2_2,2),round(F_2_4,2),round(F_3_3,2),"(siret=",siret,")")
-			o.write(f"{siret},{all_officies_table[i][1]},{round(RI,2)},{round(F_1_4,2)},{round(F_2_2,2)},{round(F_2_4,2)},{round(F_3_3,2)}\n")
-			o.flush()
+			if(len(products_table_naf)):
+				#print("(", i ,"/", len(all_officies_table),": Etablissement", all_officies_table[i][4], " (", naf, ")")
+				#print("coord_x=", coord_x, "coord_y=", coord_y, "origin=", all_officies_table[i][3])
+				RI, F_1_4, F_2_2, F_2_4, F_3_3 = compute_naf_RI(naf, coord_x, coord_y)
+				print("[" , i , "/" , len(all_officies_table) , "]" , round(RI,2),round(F_1_4,2),round(F_2_2,2),round(F_2_4,2),round(F_3_3,2),"(siret=",siret,")")
+				o.write(f"{siret},{all_officies_table[i][1]},{round(RI,2)},{round(F_1_4,2)},{round(F_2_2,2)},{round(F_2_4,2)},{round(F_3_3,2)}\n")
+				o.flush()
 
 
